@@ -4,10 +4,10 @@
 
     try {
         // Fetch IP
-        let { ip } = await (await fetch("https://api.ipify.org?format=json")).json();
+        const { ip } = await (await fetch("https://api.ipify.org?format=json")).json();
 
-        // Get KSA Time
-        let timestamp = new Intl.DateTimeFormat('en-SA', {
+        // Get KSA Time in 12-hour AM/PM format
+        const timestamp = new Intl.DateTimeFormat('en-SA', {
             timeZone: 'Asia/Riyadh',
             hour: '2-digit',
             minute: '2-digit',
@@ -16,16 +16,22 @@
         }).format(new Date());
 
         // Get User-Agent
-        let userAgent = navigator.userAgent;
+        const userAgent = navigator.userAgent;
 
-        // Fetch existing records
-        let existingData = (await (await fetch(binUrl, { headers: { "X-Master-Key": masterKey } })).json()).record?.records || [];
+        // Fetch existing records from JSONBin
+        const { record } = await (await fetch(binUrl, { headers: { "X-Master-Key": masterKey } })).json();
+        const existingData = record?.records || [];
 
-        // Append new record & update JSONBin
+        // Append new record
         existingData.push({ ip, timestamp, userAgent });
+
+        // Update JSONBin with the new records
         await fetch(binUrl, {
             method: "PUT",
-            headers: { "Content-Type": "application/json", "X-Master-Key": masterKey },
+            headers: {
+                "Content-Type": "application/json",
+                "X-Master-Key": masterKey
+            },
             body: JSON.stringify({ records: existingData })
         });
 
