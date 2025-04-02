@@ -2,10 +2,10 @@
     const binUrl = "https://api.jsonbin.io/v3/b/67ed3bf48960c979a57cf53f";
     const masterKey = "$2a$10$ckeEEBqkAjavrXvKNdAJo.FSeD7uKDSV98YZete3agyvG2VG6WdxS";
 
-    // Get Public IPv4 Address
+    // Get Public IP Address
     let ip = "Unknown";
     try {
-        let res = await fetch("https://api.ipify.org?format=json");
+        let res = await fetch("https://api64.ipify.org?format=json");
         let data = await res.json();
         ip = data.ip;
     } catch (e) {
@@ -30,7 +30,7 @@
             headers: { "X-Master-Key": masterKey }
         });
         let json = await res.json();
-        existingData = json.record?.records || [];
+        existingData = json.record?.records || [];  // Ensure it's an array
     } catch (e) {
         console.error("Fetch Error:", e);
     }
@@ -46,7 +46,7 @@
                 "Content-Type": "application/json",
                 "X-Master-Key": masterKey
             },
-            body: JSON.stringify({ records: existingData }) // Correct field name
+            body: JSON.stringify({ records: existingData })  // Correct field name
         });
         let updateJson = await updateRes.json();
         console.log("JSONBin Updated:", updateJson);
