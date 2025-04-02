@@ -1,56 +1,35 @@
-(async function() {
+(async () => {
     const binUrl = "https://api.jsonbin.io/v3/b/67ed3bf48960c979a57cf53f";
     const masterKey = "$2a$10$ckeEEBqkAjavrXvKNdAJo.FSeD7uKDSV98YZete3agyvG2VG6WdxS";
 
-    // Get Public IPv4 Address
-    let ip = "Unknown";
     try {
-        let res = await fetch("https://api.ipify.org?format=json");
-        let data = await res.json();
-        ip = data.ip;
-    } catch (e) {
-        console.error("IP Fetch Error:", e);
-    }
+        // Fetch IP
+        let { ip } = await (await fetch("https://api.ipify.org?format=json")).json();
 
-    // Get KSA Time in 12-hour AM/PM format
-    let now = new Date();
-    let ksaTime = new Intl.DateTimeFormat('en-SA', {
-        timeZone: 'Asia/Riyadh',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-    }).format(now);
+        // Get KSA Time
+        let timestamp = new Intl.DateTimeFormat('en-SA', {
+            timeZone: 'Asia/Riyadh',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: true
+        }).format(new Date());
 
-    // Fetch existing data from JSONBin
-    let existingData = [];
-    try {
-        let res = await fetch(binUrl, {
-            method: "GET",
-            headers: { "X-Master-Key": masterKey }
-        });
-        let json = await res.json();
-        existingData = json.record?.records || [];
-    } catch (e) {
-        console.error("Fetch Error:", e);
-    }
+        // Get User-Agent
+        let userAgent = navigator.userAgent;
 
-    // Append new data
-    existingData.push({ ip: ip, timestamp: ksaTime });
+        // Fetch existing records
+        let existingData = (await (await fetch(binUrl, { headers: { "X-Master-Key": masterKey } })).json()).record?.records || [];
 
-    // Update JSONBin with the new records
-    try {
-        let updateRes = await fetch(binUrl, {
+        // Append new record & update JSONBin
+        existingData.push({ ip, timestamp, userAgent });
+        await fetch(binUrl, {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Master-Key": masterKey
-            },
-            body: JSON.stringify({ records: existingData }) // Correct field name
+            headers: { "Content-Type": "application/json", "X-Master-Key": masterKey },
+            body: JSON.stringify({ records: existingData })
         });
-        let updateJson = await updateRes.json();
-        console.log("JSONBin Updated:", updateJson);
+
     } catch (e) {
-        console.error("Update Error:", e);
+        console.error("Error:", e);
     }
 })();
